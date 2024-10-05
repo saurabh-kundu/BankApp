@@ -17,6 +17,7 @@
 
     <modules>
         <module>UserService</module>
+        <module>LoanService</module>
     </modules>
 
     <properties>
