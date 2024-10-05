@@ -1,7 +1,7 @@
-package com.bankapp.user.mapper;
+package com.bankapp.userservice.mapper;
 
-import com.bankapp.user.dto.UserDto;
-import com.bankapp.user.model.BankUser;
+import com.bankapp.userservice.dto.UserDto;
+import com.bankapp.userservice.model.BankUser;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;

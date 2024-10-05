@@ -1,20 +1,22 @@
-package com.bankapp.user.service;
+package com.bankapp.userservice.service;
 
-import com.bankapp.user.exception.UserServiceException.NotFoundException;
-import com.bankapp.user.mapper.UserMapper;
-import com.bankapp.user.model.BankUser;
-import com.bankapp.user.repo.UserRepository;
+import com.bankapp.userservice.exception.UserServiceException.NotFoundException;
+import com.bankapp.userservice.mapper.UserMapper;
+import com.bankapp.userservice.model.BankUser;
+import com.bankapp.userservice.repo.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import com.bankapp.user.dto.UserDto;
+import com.bankapp.userservice.dto.UserDto;
 
-import static com.bankapp.user.util.UserConstant.USER_NOT_FOUND;
+import static com.bankapp.userservice.util.UserConstant.USER_NOT_FOUND;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserService {
@@ -24,6 +26,7 @@ public class UserService {
 
     public List<UserDto> getAllUsers() {
         List<BankUser> bankUsers = userRepository.findAll();
+        log.debug("found total: {} users found...", bankUsers.size());
         return bankUsers.stream()
                 .map(this::mapUser)
                 .collect(Collectors.toList());

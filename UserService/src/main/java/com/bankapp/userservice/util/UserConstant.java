@@ -1,4 +1,4 @@
-package com.bankapp.user.util;
+package com.bankapp.userservice.util;
 
 import lombok.experimental.UtilityClass;
 

@@ -1,4 +1,4 @@
-package com.bankapp.user.dto;
+package com.bankapp.userservice.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

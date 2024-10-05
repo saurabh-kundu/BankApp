@@ -1,6 +1,6 @@
-package com.bankapp.user.repo;
+package com.bankapp.userservice.repo;
 
-import com.bankapp.user.model.BankUser;
+import com.bankapp.userservice.model.BankUser;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;

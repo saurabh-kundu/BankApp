@@ -11,7 +11,7 @@
     </parent>
 
     <groupId>com.bankapp.user</groupId>
-    <artifactId>User</artifactId>
+    <artifactId>UserService</artifactId>
     <version>0.0.1-SNAPSHOT</version>
 
     <properties>

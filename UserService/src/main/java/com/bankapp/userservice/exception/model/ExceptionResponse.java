@@ -1,15 +1,17 @@
-package com.bankapp.user.exception.model;
+package com.bankapp.userservice.exception.model;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+@Builder
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public abstract class BaseException extends RuntimeException {
-
+public class ExceptionResponse {
     private String message;
+    private String errorCode;
 }
