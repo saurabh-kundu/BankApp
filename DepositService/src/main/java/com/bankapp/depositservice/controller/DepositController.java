@@ -1,0 +1,51 @@
+package com.bankapp.depositservice.controller;
+
+import com.bankapp.depositservice.dto.ChangeStateDto;
+import com.bankapp.depositservice.dto.DepositAccountDto;
+import com.bankapp.depositservice.service.DepositService;
+import com.bankapp.depositservice.service.TransactionService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
+
+@Slf4j
+@RestController
+@RequiredArgsConstructor
+@RequestMapping(path = "/api/v1/deposits")
+public class DepositController {
+
+    private final DepositService depositService;
+    private final TransactionService transactionService;
+
+    @PostMapping(consumes = "application/json")
+    public void createDepositAccount(@RequestBody DepositAccountDto depositAccountDto) {
+        depositService.createAccount(depositAccountDto);
+    }
+
+    @PostMapping(path = "/{depositAccountId}/state", consumes = "application/json")
+    public void updateDepositAccountState(@PathVariable String depositAccountId, @RequestBody ChangeStateDto changeStateDto) {
+        depositService.updateState(depositAccountId, changeStateDto);
+    }
+
+    @GetMapping(produces = "application/json")
+    public List<DepositAccountDto> getAllDepositAccounts() {
+        return depositService.getAllDepositAccounts();
+    }
+
+    @GetMapping(path = "/{depositAccountId}", produces = "application/json")
+    public DepositAccountDto getDepositAccountById(@PathVariable String depositAccountId) {
+        return depositService.getAccountById(depositAccountId);
+    }
+
+    @GetMapping(path = "/userId", produces = "application/json")
+    public List<DepositAccountDto> getDepositAccountsByUserId(@PathVariable String userId) {
+        return depositService.getDepositAccountsByUserId(userId);
+    }
+}

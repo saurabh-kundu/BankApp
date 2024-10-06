@@ -17,7 +17,7 @@
 
     <modules>
         <module>UserService</module>
-        <module>LoanService</module>
+        <module>DepositService</module>
         <module>PaymentsService</module>
     </modules>
 

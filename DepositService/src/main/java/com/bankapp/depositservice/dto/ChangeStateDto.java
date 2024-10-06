@@ -1,5 +1,6 @@
-package com.bankapp.loanservice.model;
+package com.bankapp.depositservice.dto;
 
+import com.bankapp.depositservice.model.AccountState;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -9,5 +10,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class LoanAccount {
+public class ChangeStateDto {
+
+    private AccountState accountState;
 }
