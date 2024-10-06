@@ -6,6 +6,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -19,18 +21,27 @@ public class DepositTransactionController {
 
     private final TransactionService transactionService;
 
+    @PostMapping(consumes = "application/json")
+    public void createTransactions(@RequestBody DepositTransactionDto depositTransactionDto) {
+
+        transactionService.createTransaction(depositTransactionDto);
+    }
+
     @GetMapping(produces = "application/json")
     public List<DepositTransactionDto> getAllTransactions() {
+
         return transactionService.getAllTransactions();
     }
 
     @GetMapping(path = "/{accountId}", produces = "application/json")
     public List<DepositTransactionDto> getAllTransactionsByAccountId(@PathVariable String accountId) {
+
         return transactionService.getTransactionsByAccountId(accountId);
     }
 
     @GetMapping(path = "/{userId}", produces = "application/json")
     public List<DepositTransactionDto> getAllTransactionsByUserId(@PathVariable String externalUserId) {
+
         return transactionService.getTransactionsByUserId(externalUserId);
     }
 }

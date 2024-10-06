@@ -9,7 +9,6 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
-import java.util.Date;
 
 @Data
 @Builder
@@ -20,6 +19,7 @@ public class DepositAccountDto {
     private String externalId;
     private AccountType accountType;
     private BigDecimal interestRate;
+    private BigDecimal openingBalance;
     private String externalUserId;
     private AccountState accountState;
     private OffsetDateTime creationDate;

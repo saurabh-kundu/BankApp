@@ -1,5 +1,6 @@
 package com.bankapp.depositservice.gateway;
 
+import com.bankapp.depositservice.gateway.dto.UserDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -15,9 +16,11 @@ public class UserServiceGateway {
     private static final String USER_SERVICE_HOST = "http://localhost:8081/api/v1/users";
 
     public Optional<UserDto> getUserByExternalUserId(String externalUserId) {
+
         RestClient restClient = RestClient.builder()
                 .baseUrl(USER_SERVICE_HOST)
                 .build();
+
         UserDto userDto = restClient.get()
                 .uri("/{userId}", externalUserId)
                 .retrieve()

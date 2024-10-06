@@ -35,8 +35,8 @@ public class DepositAccount {
     @Enumerated(EnumType.STRING)
     @Column(name = "accountType", nullable = false, length = 20)
     private AccountType accountType;
-    @Column(name = "interestRate", nullable = false)
-    private BigDecimal interestRate;
+    @Column(name = "openingBalance", nullable = false)
+    private BigDecimal openingBalance;
     @Column(name = "externalUserId", updatable = false, nullable = false)
     private String externalUserId;
     @Enumerated(EnumType.STRING)

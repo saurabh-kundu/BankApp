@@ -10,4 +10,6 @@ import static org.mapstruct.ReportingPolicy.IGNORE;
 public interface DepositTransactionMapper {
 
     DepositTransactionDto mapDomainToDto(DepositTransaction depositTransaction);
+
+    DepositTransaction mapDtoToDomain(DepositTransactionDto depositTransactionDto);
 }

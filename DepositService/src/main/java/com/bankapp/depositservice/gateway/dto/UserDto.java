@@ -1,4 +1,4 @@
-package com.bankapp.depositservice.gateway;
+package com.bankapp.depositservice.gateway.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

@@ -1,6 +1,7 @@
 package com.bankapp.depositservice.controller;
 
 import com.bankapp.depositservice.dto.ChangeStateDto;
+import com.bankapp.depositservice.dto.DepositAccountBalanceDto;
 import com.bankapp.depositservice.dto.DepositAccountDto;
 import com.bankapp.depositservice.service.DepositService;
 import com.bankapp.depositservice.service.TransactionService;
@@ -26,26 +27,37 @@ public class DepositController {
 
     @PostMapping(consumes = "application/json")
     public void createDepositAccount(@RequestBody DepositAccountDto depositAccountDto) {
+
         depositService.createAccount(depositAccountDto);
     }
 
     @PostMapping(path = "/{depositAccountId}/state", consumes = "application/json")
     public void updateDepositAccountState(@PathVariable String depositAccountId, @RequestBody ChangeStateDto changeStateDto) {
+
         depositService.updateState(depositAccountId, changeStateDto);
+    }
+
+    @GetMapping(path = "/{depositAccountId}/balances", produces = "application/json")
+    public DepositAccountBalanceDto updateDepositAccountState(@PathVariable String depositAccountId) {
+
+        return depositService.getBalances(depositAccountId);
     }
 
     @GetMapping(produces = "application/json")
     public List<DepositAccountDto> getAllDepositAccounts() {
+
         return depositService.getAllDepositAccounts();
     }
 
     @GetMapping(path = "/{depositAccountId}", produces = "application/json")
     public DepositAccountDto getDepositAccountById(@PathVariable String depositAccountId) {
+
         return depositService.getAccountById(depositAccountId);
     }
 
     @GetMapping(path = "/userId", produces = "application/json")
     public List<DepositAccountDto> getDepositAccountsByUserId(@PathVariable String userId) {
+
         return depositService.getDepositAccountsByUserId(userId);
     }
 }
