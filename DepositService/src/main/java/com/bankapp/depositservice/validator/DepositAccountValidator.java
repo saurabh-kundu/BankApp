@@ -17,12 +17,6 @@ public class DepositAccountValidator {
     private final UserServiceGateway userServiceGateway;
     private final DepositBalanceService depositBalanceService;
 
-    public void validateUserId(String externalUserId) {
-
-        userServiceGateway.getUserByExternalUserId(externalUserId)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid user Id"));
-    }
-
     public void validateMinimumBalance(BigDecimal openingBalance) {
 
         BigDecimal minimumBalance = depositBalanceService.getMinimumBalance();

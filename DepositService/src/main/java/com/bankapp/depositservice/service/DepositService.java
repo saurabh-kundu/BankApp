@@ -10,6 +10,7 @@ import com.bankapp.depositservice.model.DepositAccountBalance;
 import com.bankapp.depositservice.repository.DepositBalanceRepository;
 import com.bankapp.depositservice.repository.DepositRepository;
 import com.bankapp.depositservice.validator.DepositAccountValidator;
+import com.bankapp.depositservice.validator.UserValidator;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,11 +34,12 @@ public class DepositService {
     private final DepositBalanceRepository depositBalanceRepository;
     private final DepositAccountBalanceMapper depositAccountBalanceMapper;
     private final DepositBalanceService depositBalanceService;
+    private final UserValidator userValidator;
 
     @Transactional
     public void createAccount(DepositAccountDto depositAccountDto) {
 
-        //depositAccountValidator.validateUserId(depositAccountDto.getExternalUserId());
+        userValidator.validateUser(depositAccountDto.getExternalUserId());
 
         depositAccountValidator.validateMinimumBalance(depositAccountDto.getOpeningBalance());
 

@@ -1,16 +1,18 @@
 package com.bankapp.paymentsservice.model;
 
+import com.bankapp.paymentsservice.gateway.dto.DepositTransactionType;
 import jakarta.persistence.Column;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
-import java.util.Date;
+import java.time.OffsetDateTime;
 
 @Data
 @Builder
@@ -27,6 +29,15 @@ public class PaymentDetails {
     private Long accountId;
     @Column(name = "amount", nullable = false)
     private BigDecimal amount;
+    @Column(name = "transactionType", nullable = false)
+    private DepositTransactionType depositTransactionType;
     @Column(name = "creationDate")
-    private Date creationDate;
+    private OffsetDateTime creationDate;
+
+    @PrePersist
+    public void onCreate() {
+        if (this.creationDate == null) {
+            this.creationDate = OffsetDateTime.now();
+        }
+    }
 }

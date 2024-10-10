@@ -1,4 +1,4 @@
-package com.bankapp.depositservice.gateway.dto;
+package com.bankapp.paymentsservice.gateway.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -6,7 +6,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.io.Serializable;
 import java.util.Date;
 
 @Setter
@@ -14,7 +13,7 @@ import java.util.Date;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserDto implements Serializable {
+public class UserDto {
 
     private String userId;
     private String firstName;

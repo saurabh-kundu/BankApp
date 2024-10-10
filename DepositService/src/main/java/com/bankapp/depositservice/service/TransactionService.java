@@ -2,7 +2,9 @@ package com.bankapp.depositservice.service;
 
 import com.bankapp.depositservice.dto.DepositTransactionDto;
 import com.bankapp.depositservice.mapper.DepositTransactionMapper;
+import com.bankapp.depositservice.model.DepositAccountBalance;
 import com.bankapp.depositservice.model.DepositTransaction;
+import com.bankapp.depositservice.model.DepositTransactionType;
 import com.bankapp.depositservice.repository.TransactionRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -26,9 +28,25 @@ public class TransactionService {
 
         DepositTransaction transaction = depositTransactionMapper.mapDtoToDomain(depositTransactionDto);
 
-        transactionRepository.save(transaction);
+        DepositTransactionType depositTransactionType = transaction.getDepositTransactionType();
 
-        depositBalanceService.updateBalance(depositTransactionDto.getExternalAccountId(), depositTransactionDto.getAmount());
+        switch (depositTransactionType) {
+            case DEPOSIT -> performDepositOperation(transaction);
+            case WITHDRAWAL -> performWithdrawalOperation(transaction);
+            case null, default -> throw new IllegalArgumentException("Invalid deposit transaction type..");
+        }
+
+        transactionRepository.save(transaction);
+    }
+
+    private void performWithdrawalOperation(DepositTransaction transaction) {
+
+        depositBalanceService.performWithdrawalByAccountId(transaction.getExternalAccountId(), transaction.getAmount());
+    }
+
+    private void performDepositOperation(DepositTransaction transaction) {
+
+        depositBalanceService.performDepositByAccountId(transaction.getExternalAccountId(), transaction.getAmount());
     }
 
     public List<DepositTransactionDto> getAllTransactions() {

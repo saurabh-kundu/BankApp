@@ -10,6 +10,7 @@ import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
 import java.util.Optional;
 
 @Slf4j
@@ -23,7 +24,7 @@ public class DepositBalanceRepositoryImpl implements DepositBalanceRepository {
     @Transactional
     public Optional<DepositAccountBalance> findByExternalAccountId(String depositAccountId) {
         try {
-            Query query = entityManager.createQuery("SELECT dab FROM DepositAccountBalance where externalAccountId  = :externalAccountId");
+            Query query = entityManager.createQuery("SELECT dab FROM DepositAccountBalance WHERE externalAccountId  = :externalAccountId");
             query.setParameter("externalAccountId", depositAccountId);
             query.setLockMode(LockModeType.PESSIMISTIC_WRITE);
             return Optional.ofNullable((DepositAccountBalance) query.getSingleResult());
@@ -38,6 +39,20 @@ public class DepositBalanceRepositoryImpl implements DepositBalanceRepository {
     public void save(DepositAccountBalance depositAccountBalance) {
         try {
             entityManager.persist(depositAccountBalance);
+        } catch (Exception e) {
+            log.error("Exception caught while saving DepositAccountBalance", e);
+            throw e; // add a custom exception
+        }
+    }
+
+    @Override
+    @Transactional
+    public Optional<BigDecimal> getAccountBalanceByExternalAccountId(String externalAccountId) {
+        try {
+            Query query = entityManager.createQuery("SELECT dab.accountBalance FROM DepositAccountBalance WHERE externalAccountId  = :externalAccountId");
+            query.setParameter("externalAccountId", externalAccountId);
+            query.setLockMode(LockModeType.PESSIMISTIC_WRITE);
+            return Optional.ofNullable((BigDecimal) query.getSingleResult());
         } catch (Exception e) {
             log.error("Exception caught while saving DepositAccountBalance", e);
             throw e; // add a custom exception
