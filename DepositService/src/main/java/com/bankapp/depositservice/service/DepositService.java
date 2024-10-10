@@ -9,7 +9,7 @@ import com.bankapp.depositservice.model.DepositAccount;
 import com.bankapp.depositservice.model.DepositAccountBalance;
 import com.bankapp.depositservice.repository.DepositBalanceRepository;
 import com.bankapp.depositservice.repository.DepositRepository;
-import com.bankapp.depositservice.validator.DepositAccountValidator;
+import com.bankapp.depositservice.validator.DepositAccountBalanceValidator;
 import com.bankapp.depositservice.validator.UserValidator;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -30,7 +30,7 @@ public class DepositService {
 
     private final DepositRepository depositRepository;
     private final DepositAccountMapper depositAccountMapper;
-    private final DepositAccountValidator depositAccountValidator;
+    private final DepositAccountBalanceValidator depositAccountBalanceValidator;
     private final DepositBalanceRepository depositBalanceRepository;
     private final DepositAccountBalanceMapper depositAccountBalanceMapper;
     private final DepositBalanceService depositBalanceService;
@@ -41,7 +41,10 @@ public class DepositService {
 
         userValidator.validateUser(depositAccountDto.getExternalUserId());
 
-        depositAccountValidator.validateMinimumBalance(depositAccountDto.getOpeningBalance());
+        BigDecimal minBalance = depositBalanceService.getMinimumBalance();
+        BigDecimal openingBalance = depositAccountDto.getOpeningBalance();
+
+        depositAccountBalanceValidator.validateOpeningMinimumBalance(openingBalance, minBalance);
 
         BigDecimal interestRate = depositAccountDto.getInterestRate();
 
@@ -55,8 +58,7 @@ public class DepositService {
     @Transactional
     public void updateState(String depositAccountId, ChangeStateDto changeStateDto) {
 
-        DepositAccount depositAccount = depositRepository.findByExternalId(depositAccountId)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid deposit account Id: " + depositAccountId));
+        DepositAccount depositAccount = getDepositAccount(depositAccountId);
 
         depositAccount.setAccountState(changeStateDto.getAccountState());
 
@@ -74,15 +76,14 @@ public class DepositService {
 
     public DepositAccountDto getAccountById(String depositAccountId) {
 
-        DepositAccount depositAccount = depositRepository
-                .findByExternalId(depositAccountId)
-                .orElseThrow(() ->
-                        new IllegalArgumentException("Deposit account not found by Id: " + depositAccountId));
+        DepositAccount depositAccount = getDepositAccount(depositAccountId);
 
         return depositAccountMapper.mapModelToDto(depositAccount);
     }
 
     public List<DepositAccountDto> getDepositAccountsByUserId(String userId) {
+
+        userValidator.validateUser(userId);
 
         List<DepositAccount> depositAccounts = depositRepository.findAllByExternalUserId(userId);
 
@@ -114,5 +115,11 @@ public class DepositService {
         depositAccount.setAccountState(PENDING_APPROVAL);
 
         return depositAccount;
+    }
+
+    private DepositAccount getDepositAccount(String depositAccountId) {
+
+        return depositRepository.findByExternalId(depositAccountId)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid deposit account Id: " + depositAccountId));
     }
 }

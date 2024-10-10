@@ -25,6 +25,13 @@ public class DepositAccountBalanceValidator {
 
     }
 
+    public void validateOpeningMinimumBalance(BigDecimal openingBalance, BigDecimal minimumBalance) {
+
+        if (openingBalance.compareTo(minimumBalance) < 0) {
+            throw new IllegalArgumentException("Opening balance is less than the minimum required balance of: " + minimumBalance);
+        }
+    }
+
     public void validateUpdatedBalance(BigDecimal updatedBalance) {
 
         if (updatedBalance.compareTo(BigDecimal.ZERO) < 0) {
