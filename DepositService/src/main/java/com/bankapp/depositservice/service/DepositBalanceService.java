@@ -1,11 +1,9 @@
 package com.bankapp.depositservice.service;
 
-import com.bankapp.depositservice.dto.DepositAccountBalanceDto;
-import com.bankapp.depositservice.dto.DepositAccountDto;
 import com.bankapp.depositservice.model.DepositAccount;
 import com.bankapp.depositservice.model.DepositAccountBalance;
 import com.bankapp.depositservice.repository.DepositBalanceRepository;
-import io.netty.channel.nio.NioEventLoopGroup;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -38,6 +36,13 @@ public class DepositBalanceService {
         depositBalanceRepository.save(depositAccountBalance);
     }
 
+    /**
+     * Invalidates cache if any and then repopulate the cache
+     *
+     * @param externalDepositAccountId - external id of the deposit account
+     * @param amount - transaction amount
+     */
+    @Transactional
     public void updateBalance(String externalDepositAccountId, BigDecimal amount) {
 
         DepositAccountBalance depositAccountBalance = depositBalanceRepository
