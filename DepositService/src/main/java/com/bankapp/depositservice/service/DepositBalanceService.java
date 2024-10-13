@@ -18,146 +18,157 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class DepositBalanceService {
 
-    private final DepositBalanceRepository depositBalanceRepository;
-    private final DepositAccountBalanceValidator accountBalanceValidator;
+	private final DepositBalanceRepository depositBalanceRepository;
+	private final DepositAccountBalanceValidator accountBalanceValidator;
 
-    /**
-     * Returns the minimum balance as per bank regulations
-     * @return - Minimum balance of the bank account
-     */
-    public BigDecimal getMinimumBalance() {
+	/**
+	 * Returns the minimum balance as per bank regulations
+	 *
+	 * @return - Minimum balance of the bank account
+	 */
+	public BigDecimal getMinimumBalance() {
 
-        return new BigDecimal("1000"); // this will be externalised in some config file
-    }
+		return new BigDecimal("1000"); // this will be externalised in some config file
+	}
 
-    public BigDecimal getAccountBalance(String externalAccountId) {
+	/**
+	 * Get account balance by externalAccountId
+	 *
+	 * @param externalAccountId - external account Id
+	 * @return - account balance
+	 */
+	public BigDecimal getAccountBalance(String externalAccountId) {
 
-        Optional<BigDecimal> accountBalance = depositBalanceRepository.getAccountBalanceByExternalAccountId(externalAccountId);
+		Optional<BigDecimal> accountBalance = depositBalanceRepository.getAccountBalanceByExternalAccountId(externalAccountId);
 
-        return accountBalance.orElseThrow(() -> new IllegalArgumentException("Balance not found for accountId: " + externalAccountId));
-    }
+		return accountBalance.orElseThrow(() -> new IllegalArgumentException("Balance not found for accountId: " + externalAccountId));
+	}
 
-    public DepositAccountBalance getDepositAccountBalanceByAccountId(String externalAccountId) {
 
-        Optional<DepositAccountBalance> accountBalance = depositBalanceRepository.findByExternalAccountId(externalAccountId);
+	/**
+	 * Updates account balance for new opened accounts on creation
+	 *
+	 * @param depositAccount - Deposit account
+	 * @param interestRate   - interest rate on account
+	 */
+	public void updateBalanceOnAccountCreation(DepositAccount depositAccount, BigDecimal interestRate) {
 
-        return accountBalance.orElseThrow(() -> new IllegalArgumentException("Balance not found for accountId: " + externalAccountId));
-    }
+		BigDecimal openingBalance = depositAccount.getOpeningBalance();
 
-    /**
-     * Updates account balance for new opened accounts on creation
-     *
-     * @param depositAccount - Deposit account
-     * @param interestRate - interest rate on account
-     */
-    public void updateBalanceOnAccountCreation(DepositAccount depositAccount, BigDecimal interestRate) {
+		DepositAccountBalance depositAccountBalance = DepositAccountBalance.builder()
+				.accountBalance(depositAccount.getOpeningBalance())
+				.minBalance(getMinimumBalance())
+				.interestBalance(BigDecimal.ZERO)
+				.actualInterestPerYear(BigDecimal.ZERO)
+				.actualInterestPerMonth(BigDecimal.ZERO)
+				.expectedInterestPerYear(getExpectedInterestPerYear(openingBalance, interestRate))
+				.expectedInterestPerMonth(getExpectedInterestPerMonth(openingBalance, interestRate))
+				.externalAccountId(depositAccount.getExternalId())
+				.build();
 
-        BigDecimal openingBalance = depositAccount.getOpeningBalance();
+		depositBalanceRepository.save(depositAccountBalance);
+	}
 
-        DepositAccountBalance depositAccountBalance = DepositAccountBalance.builder()
-                .accountBalance(depositAccount.getOpeningBalance())
-                .minBalance(getMinimumBalance())
-                .interestBalance(BigDecimal.ZERO)
-                .actualInterestPerYear(BigDecimal.ZERO)
-                .actualInterestPerMonth(BigDecimal.ZERO)
-                .expectedInterestPerYear(getExpectedInterestPerYear(openingBalance, interestRate))
-                .expectedInterestPerMonth(getExpectedInterestPerMonth(openingBalance, interestRate))
-                .externalAccountId(depositAccount.getExternalId())
-                .build();
+	/**
+	 * Withdraw deposit account
+	 * - performs some validations
+	 * - updates balance
+	 *
+	 * @param externalDepositAccountId - external id of the deposit account
+	 * @param transactionAmount        - amount to be withdrawn from the account
+	 */
+	@Transactional
+	public void performWithdrawalByAccountId(String externalDepositAccountId, BigDecimal transactionAmount) {
 
-        depositBalanceRepository.save(depositAccountBalance);
-    }
+		DepositAccountBalance depositAccountBalance = getDepositAccountBalance(externalDepositAccountId);
 
-    /**
-     * Invalidates cache if any and then repopulate the cache
-     *
-     * @param externalDepositAccountId - external id of the deposit account
-     * @param transactionAmount        - transaction amount
-     */
-    @Transactional
-    public void performWithdrawalByAccountId(String externalDepositAccountId, BigDecimal transactionAmount) {
+		BigDecimal accountBalance = depositAccountBalance.getAccountBalance();
+		BigDecimal minBalance = getMinimumBalance();
 
-        DepositAccountBalance depositAccountBalance = getDepositAccountBalance(externalDepositAccountId);
+		accountBalanceValidator.validateDepositBalance(accountBalance, minBalance);
 
-        BigDecimal accountBalance = depositAccountBalance.getAccountBalance();
-        BigDecimal minBalance = getMinimumBalance();
+		BigDecimal currentBalance = depositAccountBalance.getAccountBalance();
 
-        accountBalanceValidator.validateDepositBalance(accountBalance, minBalance);
+		BigDecimal updatedBalance = currentBalance.subtract(transactionAmount);
 
-        BigDecimal currentBalance = depositAccountBalance.getAccountBalance();
+		accountBalanceValidator.validateUpdatedBalance(updatedBalance);
 
-        BigDecimal updatedBalance = currentBalance.subtract(transactionAmount);
+		updateBalance(depositAccountBalance, updatedBalance);
 
-        accountBalanceValidator.validateUpdatedBalance(updatedBalance);
+		depositBalanceRepository.save(depositAccountBalance);
+	}
 
-        updateBalance(depositAccountBalance, updatedBalance);
+	/**
+	 * Deposit deposit account
+	 * - performs some validations
+	 * - updates balance
+	 *
+	 * @param externalAccountId - external Id of the deposit account
+	 * @param transactionAmount - amount to be deposited to the account
+	 */
+	public void performDepositByAccountId(String externalAccountId, BigDecimal transactionAmount) {
 
-        depositBalanceRepository.save(depositAccountBalance);
-    }
+		DepositAccountBalance depositAccountBalance = getDepositAccountBalance(externalAccountId);
 
-    public void performDepositByAccountId(String externalAccountId, BigDecimal transactionAmount) {
+		BigDecimal accountBalance = depositAccountBalance.getAccountBalance();
 
-        DepositAccountBalance depositAccountBalance = getDepositAccountBalance(externalAccountId);
+		BigDecimal updatedBalance = accountBalance.add(transactionAmount);
 
-        BigDecimal accountBalance = depositAccountBalance.getAccountBalance();
+		updateBalance(depositAccountBalance, updatedBalance);
 
-        BigDecimal updatedBalance = accountBalance.add(transactionAmount);
+		depositBalanceRepository.save(depositAccountBalance);
+	}
 
-        updateBalance(depositAccountBalance, updatedBalance);
+	/**
+	 * Interest = Principal * Rate of Interest * Time period
+	 *
+	 * @param openingBalance      - Principal
+	 * @param interestRatePerYear - Rate of Interest per year
+	 * @return - calculated Interest
+	 */
+	private BigDecimal getExpectedInterestPerMonth(BigDecimal openingBalance, BigDecimal interestRatePerYear) {
 
-        depositBalanceRepository.save(depositAccountBalance);
-    }
+		BigDecimal interest = openingBalance
+				.multiply(interestRatePerYear)
+				.divide(new BigDecimal(100), RoundingMode.HALF_DOWN)
+				.divide(new BigDecimal(12), RoundingMode.HALF_DOWN);
 
-    /**
-     * Interest = Principal * Rate of Interest * Time period
-     *
-     * @param openingBalance      - Principal
-     * @param interestRatePerYear - Rate of Interest per year
-     * @return - calculated Interest
-     */
-    private BigDecimal getExpectedInterestPerMonth(BigDecimal openingBalance, BigDecimal interestRatePerYear) {
+		return interest.setScale(2, RoundingMode.HALF_DOWN);
+	}
 
-        BigDecimal interest = openingBalance
-                .multiply(interestRatePerYear)
-                .divide(new BigDecimal(100), RoundingMode.HALF_DOWN)
-                .divide(new BigDecimal(12), RoundingMode.HALF_DOWN);
+	/**
+	 * Interest = Principal * Rate of Interest * Time period
+	 *
+	 * @param balance             - Principal balance
+	 * @param interestRatePerYear - Rate of Interest per year
+	 * @return - calculated Interest
+	 */
+	private BigDecimal getExpectedInterestPerYear(BigDecimal balance, BigDecimal interestRatePerYear) {
 
-        return interest.setScale(2, RoundingMode.HALF_DOWN);
-    }
+		BigDecimal interest = balance
+				.multiply(interestRatePerYear)
+				.divide(new BigDecimal(100), RoundingMode.HALF_DOWN);
 
-    /**
-     * Interest = Principal * Rate of Interest * Time period
-     *
-     * @param balance             - Principal balance
-     * @param interestRatePerYear - Rate of Interest per year
-     * @return - calculated Interest
-     */
-    private BigDecimal getExpectedInterestPerYear(BigDecimal balance, BigDecimal interestRatePerYear) {
+		return interest.setScale(2, RoundingMode.HALF_DOWN);
+	}
 
-        BigDecimal interest = balance
-                .multiply(interestRatePerYear)
-                .divide(new BigDecimal(100), RoundingMode.HALF_DOWN);
+	private DepositAccountBalance getDepositAccountBalance(String externalDepositAccountId) {
 
-        return interest.setScale(2, RoundingMode.HALF_DOWN);
-    }
+		return depositBalanceRepository
+				.findByExternalAccountId(externalDepositAccountId)
+				.orElseThrow(
+						() -> new IllegalArgumentException("No deposit account Id with external Id: " + externalDepositAccountId + " found"));
+	}
 
-    private DepositAccountBalance getDepositAccountBalance(String externalDepositAccountId) {
+	private void updateBalance(DepositAccountBalance depositAccountBalance, BigDecimal updatedBalance) {
 
-        return depositBalanceRepository
-                .findByExternalAccountId(externalDepositAccountId)
-                .orElseThrow(
-                        () -> new IllegalArgumentException("No deposit account Id with external Id: " + externalDepositAccountId + " found"));
-    }
+		BigDecimal interestRate = depositAccountBalance.getInterestRate();
 
-    private void updateBalance(DepositAccountBalance depositAccountBalance, BigDecimal updatedBalance) {
+		BigDecimal expectedInterestPerYear = getExpectedInterestPerYear(updatedBalance, interestRate);
+		BigDecimal expectedInterestPerMonth = getExpectedInterestPerMonth(updatedBalance, interestRate);
 
-        BigDecimal interestRate = depositAccountBalance.getInterestRate();
-
-        BigDecimal expectedInterestPerYear = getExpectedInterestPerYear(updatedBalance, interestRate);
-        BigDecimal expectedInterestPerMonth = getExpectedInterestPerMonth(updatedBalance, interestRate);
-
-        depositAccountBalance.setAccountBalance(updatedBalance);
-        depositAccountBalance.setExpectedInterestPerYear(expectedInterestPerYear);
-        depositAccountBalance.setExpectedInterestPerMonth(expectedInterestPerMonth);
-    }
+		depositAccountBalance.setAccountBalance(updatedBalance);
+		depositAccountBalance.setExpectedInterestPerYear(expectedInterestPerYear);
+		depositAccountBalance.setExpectedInterestPerMonth(expectedInterestPerMonth);
+	}
 }

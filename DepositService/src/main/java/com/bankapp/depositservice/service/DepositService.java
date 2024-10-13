@@ -28,98 +28,124 @@ import static com.bankapp.depositservice.model.AccountState.PENDING_APPROVAL;
 @RequiredArgsConstructor
 public class DepositService {
 
-    private final DepositRepository depositRepository;
-    private final DepositAccountMapper depositAccountMapper;
-    private final DepositAccountBalanceValidator depositAccountBalanceValidator;
-    private final DepositBalanceRepository depositBalanceRepository;
-    private final DepositAccountBalanceMapper depositAccountBalanceMapper;
-    private final DepositBalanceService depositBalanceService;
-    private final UserValidator userValidator;
+	private final DepositRepository depositRepository;
+	private final DepositAccountMapper depositAccountMapper;
+	private final DepositAccountBalanceValidator depositAccountBalanceValidator;
+	private final DepositBalanceRepository depositBalanceRepository;
+	private final DepositAccountBalanceMapper depositAccountBalanceMapper;
+	private final DepositBalanceService depositBalanceService;
+	private final UserValidator userValidator;
 
-    @Transactional
-    public void createAccount(DepositAccountDto depositAccountDto) {
+	/**
+	 * Creates a deposit account for user
+	 *
+	 * @param depositAccountDto - request to open deposit account
+	 */
+	@Transactional
+	public void createAccount(DepositAccountDto depositAccountDto) {
 
-        userValidator.validateUser(depositAccountDto.getExternalUserId());
+		userValidator.validateUser(depositAccountDto.getExternalUserId());
 
-        BigDecimal minBalance = depositBalanceService.getMinimumBalance();
-        BigDecimal openingBalance = depositAccountDto.getOpeningBalance();
+		BigDecimal minBalance = depositBalanceService.getMinimumBalance();
+		BigDecimal openingBalance = depositAccountDto.getOpeningBalance();
 
-        depositAccountBalanceValidator.validateOpeningMinimumBalance(openingBalance, minBalance);
+		depositAccountBalanceValidator.validateOpeningMinimumBalance(openingBalance, minBalance);
 
-        BigDecimal interestRate = depositAccountDto.getInterestRate();
+		BigDecimal interestRate = depositAccountDto.getInterestRate();
 
-        DepositAccount depositAccount = getDepositAccount(depositAccountDto);
+		DepositAccount depositAccount = getDepositAccount(depositAccountDto);
 
-        depositRepository.save(depositAccount);
+		depositRepository.save(depositAccount);
 
-        depositBalanceService.updateBalanceOnAccountCreation(depositAccount, interestRate);
-    }
+		depositBalanceService.updateBalanceOnAccountCreation(depositAccount, interestRate);
+	}
 
-    @Transactional
-    public void updateState(String depositAccountId, ChangeStateDto changeStateDto) {
+	/**
+	 * Updates the state of deposit account
+	 *
+	 * @param depositAccountId - Id of the deposit account
+	 * @param changeStateDto   - State change request
+	 */
+	@Transactional
+	public void updateState(String depositAccountId, ChangeStateDto changeStateDto) {
 
-        DepositAccount depositAccount = getDepositAccount(depositAccountId);
+		DepositAccount depositAccount = getDepositAccount(depositAccountId);
 
-        depositAccount.setAccountState(changeStateDto.getAccountState());
+		depositAccount.setAccountState(changeStateDto.getAccountState());
 
-        depositRepository.save(depositAccount);
-    }
+		depositRepository.save(depositAccount);
+	}
 
-    public List<DepositAccountDto> getAllDepositAccounts() {
+	/**
+	 * @return - List of deposit account details
+	 */
+	public List<DepositAccountDto> getAllDepositAccounts() {
 
-        List<DepositAccount> depositAccounts = depositRepository.findAll();
+		List<DepositAccount> depositAccounts = depositRepository.findAll();
 
-        return depositAccounts.stream()
-                .map(this::mapDepositAccounts)
-                .collect(Collectors.toList());
-    }
+		return depositAccounts.stream()
+				.map(this::mapDepositAccounts)
+				.collect(Collectors.toList());
+	}
 
-    public DepositAccountDto getAccountById(String depositAccountId) {
+	/**
+	 * @param depositAccountId - Id of the deposit account
+	 * @return - Details of the deposit account
+	 */
+	public DepositAccountDto getAccountById(String depositAccountId) {
 
-        DepositAccount depositAccount = getDepositAccount(depositAccountId);
+		DepositAccount depositAccount = getDepositAccount(depositAccountId);
 
-        return depositAccountMapper.mapModelToDto(depositAccount);
-    }
+		return depositAccountMapper.mapModelToDto(depositAccount);
+	}
 
-    public List<DepositAccountDto> getDepositAccountsByUserId(String userId) {
+	/**
+	 * @param userId - Id of the user
+	 * @return - List of deposit account details belonging to the user
+	 */
+	public List<DepositAccountDto> getDepositAccountsByUserId(String userId) {
 
-        userValidator.validateUser(userId);
+		userValidator.validateUser(userId);
 
-        List<DepositAccount> depositAccounts = depositRepository.findAllByExternalUserId(userId);
+		List<DepositAccount> depositAccounts = depositRepository.findAllByExternalUserId(userId);
 
-        return depositAccounts.stream()
-                .map(this::mapDepositAccounts)
-                .collect(Collectors.toList());
-    }
+		return depositAccounts.stream()
+				.map(this::mapDepositAccounts)
+				.collect(Collectors.toList());
+	}
 
-    public DepositAccountBalanceDto getBalances(String depositAccountId) {
+	/**
+	 * @param depositAccountId - Id of the deposit account
+	 * @return - balance of the deposit account
+	 */
+	public DepositAccountBalanceDto getBalances(String depositAccountId) {
 
-        DepositAccountBalance depositAccountBalance = depositBalanceRepository.findByExternalAccountId(depositAccountId)
-                .orElseThrow(()
-                        -> new IllegalArgumentException("Deposit account not found by Id: " + depositAccountId));
+		DepositAccountBalance depositAccountBalance = depositBalanceRepository.findByExternalAccountId(depositAccountId)
+				.orElseThrow(()
+						-> new IllegalArgumentException("Deposit account not found by Id: " + depositAccountId));
 
-        return depositAccountBalanceMapper.mapBalanceToDto(depositAccountBalance);
-    }
+		return depositAccountBalanceMapper.mapBalanceToDto(depositAccountBalance);
+	}
 
-    private DepositAccountDto mapDepositAccounts(DepositAccount depositAccount) {
+	private DepositAccountDto mapDepositAccounts(DepositAccount depositAccount) {
 
-        return depositAccountMapper.mapModelToDto(depositAccount);
-    }
+		return depositAccountMapper.mapModelToDto(depositAccount);
+	}
 
-    private DepositAccount getDepositAccount(DepositAccountDto depositAccountDto) {
+	private DepositAccount getDepositAccount(DepositAccountDto depositAccountDto) {
 
-        DepositAccount depositAccount = depositAccountMapper.mapDtoToModel(depositAccountDto);
+		DepositAccount depositAccount = depositAccountMapper.mapDtoToModel(depositAccountDto);
 
-        depositAccount.setExternalId(UUID.randomUUID().toString());
+		depositAccount.setExternalId(UUID.randomUUID().toString());
 
-        depositAccount.setAccountState(PENDING_APPROVAL);
+		depositAccount.setAccountState(PENDING_APPROVAL);
 
-        return depositAccount;
-    }
+		return depositAccount;
+	}
 
-    private DepositAccount getDepositAccount(String depositAccountId) {
+	private DepositAccount getDepositAccount(String depositAccountId) {
 
-        return depositRepository.findByExternalId(depositAccountId)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid deposit account Id: " + depositAccountId));
-    }
+		return depositRepository.findByExternalId(depositAccountId)
+				.orElseThrow(() -> new IllegalArgumentException("Invalid deposit account Id: " + depositAccountId));
+	}
 }

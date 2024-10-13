@@ -2,7 +2,6 @@ package com.bankapp.depositservice.service;
 
 import com.bankapp.depositservice.dto.DepositTransactionDto;
 import com.bankapp.depositservice.mapper.DepositTransactionMapper;
-import com.bankapp.depositservice.model.DepositAccountBalance;
 import com.bankapp.depositservice.model.DepositTransaction;
 import com.bankapp.depositservice.model.DepositTransactionType;
 import com.bankapp.depositservice.repository.TransactionRepository;
@@ -19,65 +18,79 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class TransactionService {
 
-    private final TransactionRepository transactionRepository;
-    private final DepositTransactionMapper depositTransactionMapper;
-    private final DepositBalanceService depositBalanceService;
+	private final TransactionRepository transactionRepository;
+	private final DepositTransactionMapper depositTransactionMapper;
+	private final DepositBalanceService depositBalanceService;
 
-    @Transactional
-    public void createTransaction(DepositTransactionDto depositTransactionDto) {
+	/**
+	 * @param depositTransactionDto - request to create a transaction
+	 */
+	@Transactional
+	public void createTransaction(DepositTransactionDto depositTransactionDto) {
 
-        DepositTransaction transaction = depositTransactionMapper.mapDtoToDomain(depositTransactionDto);
+		DepositTransaction transaction = depositTransactionMapper.mapDtoToDomain(depositTransactionDto);
 
-        DepositTransactionType depositTransactionType = transaction.getDepositTransactionType();
+		DepositTransactionType depositTransactionType = transaction.getDepositTransactionType();
 
-        switch (depositTransactionType) {
-            case DEPOSIT -> performDepositOperation(transaction);
-            case WITHDRAWAL -> performWithdrawalOperation(transaction);
-            case null, default -> throw new IllegalArgumentException("Invalid deposit transaction type..");
-        }
+		switch (depositTransactionType) {
+			case DEPOSIT -> performDepositOperation(transaction);
+			case WITHDRAWAL -> performWithdrawalOperation(transaction);
+			case null, default -> throw new IllegalArgumentException("Invalid deposit transaction type..");
+		}
 
-        transactionRepository.save(transaction);
-    }
+		transactionRepository.save(transaction);
+	}
 
-    private void performWithdrawalOperation(DepositTransaction transaction) {
+	/**
+	 * @return - All the transactions
+	 */
+	public List<DepositTransactionDto> getAllTransactions() {
 
-        depositBalanceService.performWithdrawalByAccountId(transaction.getExternalAccountId(), transaction.getAmount());
-    }
+		List<DepositTransaction> depositTransactions = transactionRepository.findAll();
 
-    private void performDepositOperation(DepositTransaction transaction) {
+		return depositTransactions.stream()
+				.map(this::mapTransactionToDto)
+				.collect(Collectors.toList());
+	}
 
-        depositBalanceService.performDepositByAccountId(transaction.getExternalAccountId(), transaction.getAmount());
-    }
+	/**
+	 * @param externalAccountId - Id of the deposit account
+	 * @return - List of transaction details belonging to the account
+	 */
+	public List<DepositTransactionDto> getTransactionsByAccountId(String externalAccountId) {
 
-    public List<DepositTransactionDto> getAllTransactions() {
+		List<DepositTransaction> depositTransactions = transactionRepository.findAllByExternalAccountId(externalAccountId);
 
-        List<DepositTransaction> depositTransactions = transactionRepository.findAll();
+		return depositTransactions.stream()
+				.map(this::mapTransactionToDto)
+				.collect(Collectors.toList());
+	}
 
-        return depositTransactions.stream()
-                .map(this::mapTransactionToDto)
-                .collect(Collectors.toList());
-    }
+	/**
+	 * @param externalUserId - Id of the user
+	 * @return - List of transaction details belonging to the user
+	 */
+	public List<DepositTransactionDto> getTransactionsByUserId(String externalUserId) {
 
-    public List<DepositTransactionDto> getTransactionsByAccountId(String externalAccountId) {
+		List<DepositTransaction> depositTransactions = transactionRepository.findAllByExternalUserId(externalUserId);
 
-        List<DepositTransaction> depositTransactions = transactionRepository.findAllByExternalAccountId(externalAccountId);
+		return depositTransactions.stream()
+				.map(this::mapTransactionToDto)
+				.collect(Collectors.toList());
+	}
 
-        return depositTransactions.stream()
-                .map(this::mapTransactionToDto)
-                .collect(Collectors.toList());
-    }
+	private void performWithdrawalOperation(DepositTransaction transaction) {
 
-    public List<DepositTransactionDto> getTransactionsByUserId(String externalUserId) {
+		depositBalanceService.performWithdrawalByAccountId(transaction.getExternalAccountId(), transaction.getAmount());
+	}
 
-        List<DepositTransaction> depositTransactions = transactionRepository.findAllByExternalUserId(externalUserId);
+	private void performDepositOperation(DepositTransaction transaction) {
 
-        return depositTransactions.stream()
-                .map(this::mapTransactionToDto)
-                .collect(Collectors.toList());
-    }
+		depositBalanceService.performDepositByAccountId(transaction.getExternalAccountId(), transaction.getAmount());
+	}
 
-    private DepositTransactionDto mapTransactionToDto(DepositTransaction depositTransaction) {
+	private DepositTransactionDto mapTransactionToDto(DepositTransaction depositTransaction) {
 
-        return depositTransactionMapper.mapDomainToDto(depositTransaction);
-    }
+		return depositTransactionMapper.mapDomainToDto(depositTransaction);
+	}
 }
