@@ -17,43 +17,42 @@ import java.util.Optional;
 
 @Slf4j
 @Service
-@Transactional
 @RequiredArgsConstructor
 public class PaymentsService {
 
-    private final PaymentsMapper paymentsMapper;
-    private final TransactionGateway transactionGateway;
-    private final UserServiceGateway userServiceGateway;
-    private final PaymentsRepository paymentsRepository;
+	private final PaymentsMapper paymentsMapper;
+	private final TransactionGateway transactionGateway;
+	private final UserServiceGateway userServiceGateway;
+	private final PaymentsRepository paymentsRepository;
 
-    @Transactional
-    public void makePayments(PaymentRequestDto paymentRequestDto) {
+	@Transactional
+	public void makePayments(PaymentRequestDto paymentRequestDto) {
 
-        // validate user
-        Optional<UserDto> userDto = userServiceGateway.getUserByExternalUserId(paymentRequestDto.getExternalUserId());
+		// validate user
+		Optional<UserDto> userDto = userServiceGateway.getUserByExternalUserId(paymentRequestDto.getExternalUserId());
 
-        userDto
-                .orElseThrow(()
-                        -> new IllegalArgumentException("No user found with userId: " + paymentRequestDto.getExternalUserId()));
+		userDto
+				.orElseThrow(()
+						-> new IllegalArgumentException("No user found with userId: " + paymentRequestDto.getExternalUserId()));
 
-        PaymentDetails paymentDetails = paymentsMapper.mapPaymentRequestDtoToDomain(paymentRequestDto);
+		PaymentDetails paymentDetails = paymentsMapper.mapPaymentRequestDtoToDomain(paymentRequestDto);
 
-        paymentsRepository.save(paymentDetails);
+		paymentsRepository.save(paymentDetails);
 
-        DepositTransactionDto transactionRequest = buildTransactionRequest(paymentRequestDto);
+		DepositTransactionDto transactionRequest = buildTransactionRequest(paymentRequestDto);
 
-        transactionGateway.createTransaction(transactionRequest);
+		transactionGateway.createTransaction(transactionRequest);
 
-        log.info("Payment successful");
-    }
+		log.info("Payment successful");
+	}
 
-    private DepositTransactionDto buildTransactionRequest(PaymentRequestDto paymentRequestDto) {
+	private DepositTransactionDto buildTransactionRequest(PaymentRequestDto paymentRequestDto) {
 
-        return DepositTransactionDto.builder()
-                .externalUserId(paymentRequestDto.getExternalUserId())
-                .externalAccountId(paymentRequestDto.getExternalAccountId())
-                .amount(paymentRequestDto.getAmount())
-                .depositTransactionType(paymentRequestDto.getDepositTransactionType())
-                .build();
-    }
+		return DepositTransactionDto.builder()
+				.externalUserId(paymentRequestDto.getExternalUserId())
+				.externalAccountId(paymentRequestDto.getExternalAccountId())
+				.amount(paymentRequestDto.getAmount())
+				.depositTransactionType(paymentRequestDto.getDepositTransactionType())
+				.build();
+	}
 }

@@ -2,10 +2,12 @@ package com.bankapp.paymentsservice.model;
 
 import com.bankapp.paymentsservice.gateway.dto.DepositTransactionType;
 import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -16,6 +18,8 @@ import java.time.OffsetDateTime;
 
 @Data
 @Builder
+@Entity
+@Table(name = "PaymentDetails")
 @NoArgsConstructor
 @AllArgsConstructor
 public class PaymentDetails {
@@ -24,9 +28,9 @@ public class PaymentDetails {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @Column(name = "userId", nullable = false)
-    private Long userId;
+    private String userId;
     @Column(name = "accountId", nullable = false)
-    private Long accountId;
+    private String accountId;
     @Column(name = "amount", nullable = false)
     private BigDecimal amount;
     @Column(name = "transactionType", nullable = false)

@@ -4,7 +4,6 @@ import com.bankapp.depositservice.dto.ChangeStateDto;
 import com.bankapp.depositservice.dto.DepositAccountBalanceDto;
 import com.bankapp.depositservice.dto.DepositAccountDto;
 import com.bankapp.depositservice.service.DepositService;
-import com.bankapp.depositservice.service.TransactionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,42 +21,41 @@ import java.util.List;
 @RequestMapping(path = "/api/v1/deposits")
 public class DepositController {
 
-    private final DepositService depositService;
-    private final TransactionService transactionService;
+	private final DepositService depositService;
 
-    @PostMapping(consumes = "application/json")
-    public void createDepositAccount(@RequestBody DepositAccountDto depositAccountDto) {
+	@PostMapping(consumes = "application/json")
+	public void createDepositAccount(@RequestBody DepositAccountDto depositAccountDto) {
 
-        depositService.createAccount(depositAccountDto);
-    }
+		depositService.createAccount(depositAccountDto);
+	}
 
-    @PostMapping(path = "/{depositAccountId}/state", consumes = "application/json")
-    public void updateDepositAccountState(@PathVariable String depositAccountId, @RequestBody ChangeStateDto changeStateDto) {
+	@PostMapping(path = "/{depositAccountId}/state", consumes = "application/json")
+	public void updateDepositAccountState(@PathVariable String depositAccountId, @RequestBody ChangeStateDto changeStateDto) {
 
-        depositService.updateState(depositAccountId, changeStateDto);
-    }
+		depositService.updateState(depositAccountId, changeStateDto);
+	}
 
-    @GetMapping(path = "/{depositAccountId}/balances", produces = "application/json")
-    public DepositAccountBalanceDto updateDepositAccountState(@PathVariable String depositAccountId) {
+	@GetMapping(path = "/{depositAccountId}/balances", produces = "application/json")
+	public DepositAccountBalanceDto getDepositAccountBalancesById(@PathVariable String depositAccountId) {
 
-        return depositService.getBalances(depositAccountId);
-    }
+		return depositService.getBalances(depositAccountId);
+	}
 
-    @GetMapping(produces = "application/json")
-    public List<DepositAccountDto> getAllDepositAccounts() {
+	@GetMapping(produces = "application/json")
+	public List<DepositAccountDto> getAllDepositAccounts() {
 
-        return depositService.getAllDepositAccounts();
-    }
+		return depositService.getAllDepositAccounts();
+	}
 
-    @GetMapping(path = "/{depositAccountId}", produces = "application/json")
-    public DepositAccountDto getDepositAccountById(@PathVariable String depositAccountId) {
+	@GetMapping(path = "/{depositAccountId}", produces = "application/json")
+	public DepositAccountDto getDepositAccountById(@PathVariable String depositAccountId) {
 
-        return depositService.getAccountById(depositAccountId);
-    }
+		return depositService.getAccountById(depositAccountId);
+	}
 
-    @GetMapping(path = "/userId", produces = "application/json")
-    public List<DepositAccountDto> getDepositAccountsByUserId(@PathVariable String userId) {
+	@GetMapping(path = "/userId", produces = "application/json")
+	public List<DepositAccountDto> getDepositAccountsByUserId(@PathVariable String userId) {
 
-        return depositService.getDepositAccountsByUserId(userId);
-    }
+		return depositService.getDepositAccountsByUserId(userId);
+	}
 }

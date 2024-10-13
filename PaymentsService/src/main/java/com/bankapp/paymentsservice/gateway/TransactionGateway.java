@@ -14,7 +14,7 @@ import org.springframework.web.client.RestClient;
 @RequiredArgsConstructor
 public class TransactionGateway {
 
-    private static final String DEPOSIT_SERVICE_HOST = "http://localhost:8081/api/v1/deposits";
+    private static final String DEPOSIT_SERVICE_HOST = "http://localhost:8082/api/v1/deposits";
 
     public void createTransaction(DepositTransactionDto transactionRequest) {
 

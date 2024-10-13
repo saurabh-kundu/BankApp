@@ -56,6 +56,7 @@ public class DepositBalanceService {
 		BigDecimal openingBalance = depositAccount.getOpeningBalance();
 
 		DepositAccountBalance depositAccountBalance = DepositAccountBalance.builder()
+				.interestRate(interestRate)
 				.accountBalance(depositAccount.getOpeningBalance())
 				.minBalance(getMinimumBalance())
 				.interestBalance(BigDecimal.ZERO)

@@ -18,13 +18,13 @@ import java.util.Optional;
 public class DepositBalanceRepositoryImpl implements DepositBalanceRepository {
 
     @PersistenceContext
-    private EntityManager entityManager;
+    private  EntityManager entityManager;
 
     @Override
     @Transactional
     public Optional<DepositAccountBalance> findByExternalAccountId(String depositAccountId) {
         try {
-            Query query = entityManager.createQuery("SELECT dab FROM DepositAccountBalance WHERE externalAccountId  = :externalAccountId");
+            Query query = entityManager.createQuery("SELECT dab FROM DepositAccountBalance dab WHERE dab.externalAccountId  = :externalAccountId");
             query.setParameter("externalAccountId", depositAccountId);
             query.setLockMode(LockModeType.PESSIMISTIC_WRITE);
             return Optional.ofNullable((DepositAccountBalance) query.getSingleResult());

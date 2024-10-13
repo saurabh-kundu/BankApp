@@ -1,7 +1,7 @@
-package com.bankapp.depositservice.validator;
+package com.bankapp.paymentsservice.validator;
 
-import com.bankapp.depositservice.gateway.UserServiceGateway;
-import com.bankapp.depositservice.gateway.dto.UserDto;
+import com.bankapp.paymentsservice.gateway.UserServiceGateway;
+import com.bankapp.paymentsservice.gateway.dto.UserDto;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.lettuce.core.RedisClient;
@@ -16,45 +16,45 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class UserValidator {
 
-    private final RedisClient redisClient;
-    private final UserServiceGateway userServiceGateway;
+	private final RedisClient redisClient;
+	private final UserServiceGateway userServiceGateway;
 
-    private static final ObjectMapper objectMapper = new ObjectMapper();
+	private static final ObjectMapper objectMapper = new ObjectMapper();
 
-    public void validateUser(String externalUserId) {
+	public void validateUser(String externalUserId) {
 
-        StatefulRedisConnection<String, String> connection = redisClient.connect();
-        RedisCommands<String, String> syncCommands = connection.sync();
+		StatefulRedisConnection<String, String> connection = redisClient.connect();
+		RedisCommands<String, String> syncCommands = connection.sync();
 
-        String userString = syncCommands.get(externalUserId);
+		String userString = syncCommands.get(externalUserId);
 
-        if (userString == null) {
+		if (userString == null) {
 
-            validateUserByCallingUserService(externalUserId);
+			validateUserByCallingUserService(externalUserId);
 
-        } else {
+		} else {
 
-            try {
+			try {
 
-                UserDto user = objectMapper.readValue(userString, UserDto.class);
+				UserDto user = objectMapper.readValue(userString, UserDto.class);
 
-                if (user == null) {
+				if (user == null) {
 
-                    throw new IllegalArgumentException("Invalid user Id: " + externalUserId);
-                }
+					throw new IllegalArgumentException("Invalid user Id: " + externalUserId);
+				}
 
-            } catch (JsonProcessingException e) {
+			} catch (JsonProcessingException e) {
 
-                throw new RuntimeException(e);
-            }
-        }
-    }
+				throw new RuntimeException(e);
+			}
+		}
+	}
 
-    private void validateUserByCallingUserService(String externalUserId) {
+	private void validateUserByCallingUserService(String externalUserId) {
 
-        log.warn("user not found in cache..making an API call to user service to retrieve details for userId: {}", externalUserId);
+		log.warn("user not found in cache..making an API call to user service to retrieve details for userId: {}", externalUserId);
 
-        userServiceGateway.getUserByExternalUserId(externalUserId)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid user Id"));
-    }
+		userServiceGateway.getUserByExternalUserId(externalUserId)
+				.orElseThrow(() -> new IllegalArgumentException("Invalid user Id"));
+	}
 }

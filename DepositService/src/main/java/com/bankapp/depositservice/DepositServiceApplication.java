@@ -8,8 +8,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class DepositServiceApplication {
 
-    public static void main(String[] args) {
-        SpringApplication.run(DepositServiceApplication.class, args);
-        log.info("Deposit Service started...");
-    }
+	public static void main(String[] args) {
+		SpringApplication.run(DepositServiceApplication.class, args);
+		log.info("Deposit Service started...");
+	}
 }

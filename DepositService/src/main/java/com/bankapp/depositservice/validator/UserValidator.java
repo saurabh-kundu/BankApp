@@ -16,7 +16,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class UserValidator {
 
-    private final RedisClient redisClient;
+    private final RedisClient redisClient = RedisClient.create("redis://localhost:6379");
     private final UserServiceGateway userServiceGateway;
 
     private static final ObjectMapper objectMapper = new ObjectMapper();

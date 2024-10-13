@@ -15,3 +15,11 @@ if [ -n "$PID_8081" ]; then
     echo "Killing application on port 8081 with PID $PID_8081..."
     kill -9 $PID_8081
 fi
+
+
+# Kill application running on port 8083
+PID_8083=$(lsof -t -i:8083)
+if [ -n "$PID_8083" ]; then
+    echo "Killing application on port 8083 with PID $PID_8083..."
+    kill -9 $PID_8083
+fi
