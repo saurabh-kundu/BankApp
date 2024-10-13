@@ -4,6 +4,8 @@ import com.bankapp.depositservice.dto.DepositTransactionDto;
 import com.bankapp.depositservice.service.TransactionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -19,29 +21,31 @@ import java.util.List;
 @RequestMapping(path = "/api/v1/deposits/transactions")
 public class DepositTransactionController {
 
-    private final TransactionService transactionService;
+	private final TransactionService transactionService;
 
-    @PostMapping(consumes = "application/json")
-    public void createTransactions(@RequestBody DepositTransactionDto depositTransactionDto) {
+	@PostMapping(consumes = "application/json")
+	public ResponseEntity<Void> createTransactions(@RequestBody DepositTransactionDto depositTransactionDto) {
 
-        transactionService.createTransaction(depositTransactionDto);
-    }
+		transactionService.createTransaction(depositTransactionDto);
 
-    @GetMapping(produces = "application/json")
-    public List<DepositTransactionDto> getAllTransactions() {
+		return new ResponseEntity<>(HttpStatus.CREATED);
+	}
 
-        return transactionService.getAllTransactions();
-    }
+	@GetMapping(produces = "application/json")
+	public ResponseEntity<List<DepositTransactionDto>> getAllTransactions() {
 
-    @GetMapping(path = "/{accountId}", produces = "application/json")
-    public List<DepositTransactionDto> getAllTransactionsByAccountId(@PathVariable String accountId) {
+		return ResponseEntity.ok(transactionService.getAllTransactions());
+	}
 
-        return transactionService.getTransactionsByAccountId(accountId);
-    }
+	@GetMapping(path = "/{accountId}", produces = "application/json")
+	public ResponseEntity<List<DepositTransactionDto>> getAllTransactionsByAccountId(@PathVariable String accountId) {
 
-    @GetMapping(path = "/{userId}", produces = "application/json")
-    public List<DepositTransactionDto> getAllTransactionsByUserId(@PathVariable String externalUserId) {
+		return ResponseEntity.ok(transactionService.getTransactionsByAccountId(accountId));
+	}
 
-        return transactionService.getTransactionsByUserId(externalUserId);
-    }
+	@GetMapping(path = "/{userId}", produces = "application/json")
+	public ResponseEntity<List<DepositTransactionDto>> getAllTransactionsByUserId(@PathVariable String externalUserId) {
+
+		return ResponseEntity.ok(transactionService.getTransactionsByUserId(externalUserId));
+	}
 }

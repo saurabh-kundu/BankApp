@@ -3,6 +3,8 @@ package com.bankapp.userservice.controller;
 import com.bankapp.userservice.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -21,30 +23,42 @@ import com.bankapp.userservice.dto.UserDto;
 @RequestMapping(path = "/api/v1/users")
 public class UserController {
 
-    private final UserService userService;
+	private final UserService userService;
 
-    @GetMapping(produces = "application/json")
-    public List<UserDto> getAllUsers() {
-        log.trace("get all users api invoked...");
-        return userService.getAllUsers();
-    }
+	@GetMapping(produces = "application/json")
+	public ResponseEntity<List<UserDto>> getAllUsers() {
 
-    @GetMapping(path = "/{userId}", produces = "application/json")
-    public UserDto getUserById(@PathVariable String userId) {
-        log.trace("get user by id: {} api invoked...", userId);
-        return userService.getUserById(userId);
-    }
+		log.trace("get all users api invoked...");
 
-    @PostMapping(consumes = "application/json")
-    public void addUser(@RequestBody UserDto userRequest) {
-        log.trace("adding user api invoked...");
-        userService.addUsers(userRequest);
-    }
+		return ResponseEntity.ok(userService.getAllUsers());
+	}
 
-    @PatchMapping(consumes = "application/json")
-    public void updateUser(@RequestBody UserDto userRequest) {
-        log.trace("updating user by id: {} api invoked...", userRequest.getUserId());
-        userService.updateUser(userRequest);
-    }
+	@GetMapping(path = "/{userId}", produces = "application/json")
+	public ResponseEntity<UserDto> getUserById(@PathVariable String userId) {
+
+		log.trace("get user by id: {} api invoked...", userId);
+
+		return ResponseEntity.ok(userService.getUserById(userId));
+	}
+
+	@PostMapping(consumes = "application/json")
+	public ResponseEntity<Void> addUser(@RequestBody UserDto userRequest) {
+
+		log.trace("adding user api invoked...");
+
+		userService.addUsers(userRequest);
+
+		return new ResponseEntity<>(HttpStatus.CREATED);
+	}
+
+	@PatchMapping(consumes = "application/json")
+	public ResponseEntity<Void> updateUser(@RequestBody UserDto userRequest) {
+
+		log.trace("updating user by id: {} api invoked...", userRequest.getUserId());
+
+		userService.updateUser(userRequest);
+
+		return new ResponseEntity<>(HttpStatus.OK);
+	}
 
 }
