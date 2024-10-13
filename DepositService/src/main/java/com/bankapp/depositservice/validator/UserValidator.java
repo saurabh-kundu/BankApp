@@ -16,45 +16,62 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class UserValidator {
 
-    private final RedisClient redisClient = RedisClient.create("redis://localhost:6379");
-    private final UserServiceGateway userServiceGateway;
+	private final RedisClient redisClient = RedisClient.create("redis://localhost:6379");
+	private final UserServiceGateway userServiceGateway;
 
-    private static final ObjectMapper objectMapper = new ObjectMapper();
+	private static final ObjectMapper objectMapper = new ObjectMapper();
 
-    public void validateUser(String externalUserId) {
+	public void validateUser(String externalUserId) {
 
-        StatefulRedisConnection<String, String> connection = redisClient.connect();
-        RedisCommands<String, String> syncCommands = connection.sync();
+		StatefulRedisConnection<String, String> connection = redisClient.connect();
+		RedisCommands<String, String> syncCommands = connection.sync();
 
-        String userString = syncCommands.get(externalUserId);
+		String userString = syncCommands.get(externalUserId);
 
-        if (userString == null) {
+		if (userString == null) {
 
-            validateUserByCallingUserService(externalUserId);
+			UserDto user = validateAndGetUserByCallingUserService(externalUserId);
 
-        } else {
+			try {
 
-            try {
+				userString = objectMapper.writeValueAsString(user);
 
-                UserDto user = objectMapper.readValue(userString, UserDto.class);
+			} catch (JsonProcessingException e) {
 
-                if (user == null) {
+				log.error("Cannot create string for user object", e);
 
-                    throw new IllegalArgumentException("Invalid user Id: " + externalUserId);
-                }
+				throw new RuntimeException(e);
+			}
 
-            } catch (JsonProcessingException e) {
+			syncCommands.set(user.getUserId(), userString);
 
-                throw new RuntimeException(e);
-            }
-        }
-    }
+		} else {
 
-    private void validateUserByCallingUserService(String externalUserId) {
+			try {
 
-        log.warn("user not found in cache..making an API call to user service to retrieve details for userId: {}", externalUserId);
+				UserDto user = objectMapper.readValue(userString, UserDto.class);
 
-        userServiceGateway.getUserByExternalUserId(externalUserId)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid user Id"));
-    }
+				if (user == null) {
+
+					throw new IllegalArgumentException("Invalid user Id: " + externalUserId);
+				}
+
+				log.info("Validated user from cache...");
+
+			} catch (JsonProcessingException e) {
+
+				log.error("Cannot read user string to create instance", e);
+
+				throw new RuntimeException(e);
+			}
+		}
+	}
+
+	private UserDto validateAndGetUserByCallingUserService(String externalUserId) {
+
+		log.warn("user not found in cache..making an API call to user service to retrieve details for userId: {}", externalUserId);
+
+		return userServiceGateway.getUserByExternalUserId(externalUserId)
+				.orElseThrow(() -> new IllegalArgumentException("Invalid user Id"));
+	}
 }

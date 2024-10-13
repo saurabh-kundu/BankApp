@@ -8,6 +8,7 @@ import com.bankapp.paymentsservice.gateway.dto.UserDto;
 import com.bankapp.paymentsservice.mapper.PaymentsMapper;
 import com.bankapp.paymentsservice.model.PaymentDetails;
 import com.bankapp.paymentsservice.repository.PaymentsRepository;
+import com.bankapp.paymentsservice.validator.UserValidator;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,18 +23,14 @@ public class PaymentsService {
 
 	private final PaymentsMapper paymentsMapper;
 	private final TransactionGateway transactionGateway;
-	private final UserServiceGateway userServiceGateway;
+	private final UserValidator userValidator;
 	private final PaymentsRepository paymentsRepository;
 
 	@Transactional
 	public void makePayments(PaymentRequestDto paymentRequestDto) {
 
 		// validate user
-		Optional<UserDto> userDto = userServiceGateway.getUserByExternalUserId(paymentRequestDto.getExternalUserId());
-
-		userDto
-				.orElseThrow(()
-						-> new IllegalArgumentException("No user found with userId: " + paymentRequestDto.getExternalUserId()));
+		userValidator.validateUser(paymentRequestDto.getExternalUserId());
 
 		PaymentDetails paymentDetails = paymentsMapper.mapPaymentRequestDtoToDomain(paymentRequestDto);
 

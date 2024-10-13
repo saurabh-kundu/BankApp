@@ -16,8 +16,9 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class UserValidator {
 
-	private final RedisClient redisClient;
 	private final UserServiceGateway userServiceGateway;
+
+	private final RedisClient redisClient = RedisClient.create("redis://localhost:6379");
 
 	private static final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -42,6 +43,8 @@ public class UserValidator {
 
 					throw new IllegalArgumentException("Invalid user Id: " + externalUserId);
 				}
+
+				log.info("Validated user from cache...");
 
 			} catch (JsonProcessingException e) {
 
