@@ -1,3 +1,31 @@
-/User/target/
-.idea
+# Maven
+target/
+**/target/
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+
+# Quarkus
+**/quarkus-app/
+**/quarkus-app-dev/
+**/quarkus-app-prod/
+
+# Logs
+*.log
+logs/
+
+# System Files
+.DS_Store
+Thumbs.db
+
 /Ban
