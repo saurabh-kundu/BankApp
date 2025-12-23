@@ -1,25 +1,26 @@
 #!/bin/bash
 
+kill_port() {
+    local port=$1
+    local service_name=$2
+    local pid=$(lsof -t -i:$port 2>/dev/null)
+    if [ -n "$pid" ]; then
+        echo "Killing $service_name on port $port with PID $pid..."
+        kill -9 $pid
+        sleep 0.5
+    else
+        echo "No application running on port $port"
+    fi
+}
 
-# Kill application running on port 8082
-PID_8082=$(lsof -t -i:8082)
-if [ -n "$PID_8082" ]; then
-    echo "Killing application on port 8082 with PID $PID_8082..."
-    kill -9 $PID_8082
-fi
+echo "Stopping services..."
 
+kill_port 8082 "PaymentsService"
+kill_port 8081 "UserService"
+kill_port 8083 "DepositService"
 
-# Kill application running on port 8081
-PID_8081=$(lsof -t -i:8081)
-if [ -n "$PID_8081" ]; then
-    echo "Killing application on port 8081 with PID $PID_8081..."
-    kill -9 $PID_8081
-fi
+# Stop Redis
+echo "Stopping Redis..."
+brew services stop redis 2>/dev/null || kill_port 6379 "Redis"
 
-
-# Kill application running on port 8083
-PID_8083=$(lsof -t -i:8083)
-if [ -n "$PID_8083" ]; then
-    echo "Killing application on port 8083 with PID $PID_8083..."
-    kill -9 $PID_8083
-fi
+echo "All services stopped successfully!"

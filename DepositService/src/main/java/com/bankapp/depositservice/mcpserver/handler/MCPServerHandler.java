@@ -1,4 +1,4 @@
-package com.bankapp.depositservice.mcp;
+package com.bankapp.depositservice.mcpserver.handler;
 
 import com.bankapp.depositservice.dto.DepositAccountDto;
 import com.bankapp.depositservice.model.AccountType;
@@ -122,7 +122,7 @@ public class MCPServerHandler {
 					"jsonrpc", "2.0",
 					"id", id,
 					"result", Map.of(
-							"tools", new Object[] {
+							"tools", new Object[]{
 									Map.of(
 											"name", "create_deposit",
 											"description", "Create a new deposit for a customer",
@@ -136,9 +136,13 @@ public class MCPServerHandler {
 															"interestRate", Map.of(
 																	"type", "number",
 																	"description", "Interest rate of the account"
+															),
+															"externalUserId", Map.of(
+																	"type", "String",
+																	"description", "Id of the user"
 															)
 													),
-													"required", new String[]{"openingBalance", "interestRate"}
+													"required", new String[]{ "openingBalance", "interestRate" }
 											)
 									),
 									Map.of(
@@ -152,7 +156,7 @@ public class MCPServerHandler {
 																	"description", "Deposit ID"
 															)
 													),
-													"required", new String[]{"depositId"}
+													"required", new String[]{ "depositId" }
 											)
 									),
 									Map.of(
@@ -166,7 +170,7 @@ public class MCPServerHandler {
 																	"description", "Customer ID"
 															)
 													),
-													"required", new String[]{"customerId"}
+													"required", new String[]{ "customerId" }
 											)
 									)
 							}
@@ -215,6 +219,7 @@ public class MCPServerHandler {
 			case "create_deposit":
 				DepositAccountDto depositAccountDto = new DepositAccountDto();
 				depositAccountDto.setAccountType(AccountType.SAVINGS);
+				depositAccountDto.setExternalUserId((String) arguments.get("externalUserId"));
 				depositAccountDto.setOpeningBalance(BigDecimal.valueOf(((Number) arguments.get("openingBalance")).doubleValue()));
 				depositAccountDto.setInterestRate(BigDecimal.valueOf(((Number) arguments.get("interestRate")).doubleValue()));
 				return depositService.createAccountMCP(depositAccountDto);
