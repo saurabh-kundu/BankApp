@@ -60,6 +60,27 @@ public class DepositService {
 		depositBalanceService.updateBalanceOnAccountCreation(depositAccount, interestRate);
 	}
 
+	@Transactional
+	public String createAccountMCP(DepositAccountDto depositAccountDto) {
+
+		userValidator.validateUser(depositAccountDto.getExternalUserId());
+
+		BigDecimal minBalance = depositBalanceService.getMinimumBalance();
+		BigDecimal openingBalance = depositAccountDto.getOpeningBalance();
+
+		depositAccountBalanceValidator.validateOpeningMinimumBalance(openingBalance, minBalance);
+
+		BigDecimal interestRate = depositAccountDto.getInterestRate();
+
+		DepositAccount depositAccount = getDepositAccount(depositAccountDto);
+
+		depositRepository.save(depositAccount);
+
+		depositBalanceService.updateBalanceOnAccountCreation(depositAccount, interestRate);
+
+		return "deposit account created";
+	}
+
 	/**
 	 * Updates the state of deposit account
 	 *
