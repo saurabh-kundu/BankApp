@@ -9,7 +9,7 @@
         <version>0.0.1-SNAPSHOT</version>
     </parent>
 
-    <groupId>com.bankapp.user</groupId>
+    <groupId>com.bankapp.deposit</groupId>
     <artifactId>DepositService</artifactId>
     <version>0.0.1-SNAPSHOT</version>
 
